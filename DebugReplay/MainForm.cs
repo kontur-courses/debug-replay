@@ -37,7 +37,7 @@ namespace DebugReplay
 
             for (var i = 0; i < 5; i++)
             {
-                for (var j = 0; i < 3; i++)
+                for (var j = 0; j < 3; j++)
                 {
                     var rootX = (i * 250 - 100 * j)
                         + 50 * random.NextDouble(); // Немного случайности в положение дерева
@@ -72,17 +72,17 @@ namespace DebugReplay
                 var newBranchAngle = branchAngle + i * Math.PI / 6 * (1 + 0.4 * random.NextDouble());
                 var newBranchLength = branchLength * 0.6 * (1 + 0.2 * random.NextDouble());
                 DrawTree(graphics, endX, endY, newBranchAngle, newBranchLength,
-                    currentGeneration, maxGeneration);
+                    currentGeneration + 1, maxGeneration);
             }
         }
 
         private Pen GetBranchPen(int currentGeneration, int maxGeneration)
         {
-            //// Для кэширования.
-            //// Если pen для текущего поколения уже построен и закэширован, то берем его из кэша
-            //var generationKey = BuildGenerationKey(currentGeneration, maxGeneration);
-            //if (branchPenCache.ContainsKey(generationKey))
-            //    return branchPenCache[generationKey];
+            // Для кэширования.
+            // Если pen для текущего поколения уже построен и закэширован, то берем его из кэша
+            var generationKey = BuildGenerationKey(currentGeneration, maxGeneration);
+            if (branchPenCache.ContainsKey(generationKey))
+                return branchPenCache[generationKey];
 
             // Иначе строим новый pen
             var startBranchColor = Color.SaddleBrown;
@@ -100,20 +100,23 @@ namespace DebugReplay
 
             var branchPen = new Pen(branchColor, (float)branchWidth);
 
-            //// Для кэширования.
-            //// Кэшируем построенный для поколения pen
-            //branchPenCache[generationKey] = branchPen;
+            // Для кэширования.
+            // Кэшируем построенный для поколения pen
+            branchPenCache[generationKey] = branchPen;
 
             return branchPen;
         }
 
-        //// Для кэширования.
-        //private Dictionary<int[], Pen> branchPenCache = new Dictionary<int[], Pen>();
+        // Для кэширования.
+        private Dictionary<long, Pen> branchPenCache = new Dictionary<long, Pen>();
 
-        //// Для кэширования.
-        //private int[] BuildGenerationKey(int currentGeneration, int maxGeneration)
-        //{
-        //    return new[] { currentGeneration, maxGeneration };
-        //}
+        // Для кэширования.
+        private long BuildGenerationKey(int currentGeneration, int maxGeneration)
+        {
+            long key = currentGeneration;
+            key <<= 32;
+            key += maxGeneration;
+            return key;
+        }
     }
 }
